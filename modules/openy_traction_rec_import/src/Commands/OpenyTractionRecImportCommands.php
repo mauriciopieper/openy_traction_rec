@@ -3,7 +3,6 @@
 namespace Drupal\openy_traction_rec_import\Commands;
 
 use Consolidation\SiteAlias\SiteAliasManagerAwareTrait;
-use Consolidation\SiteProcess\ProcessManagerAwareTrait;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -20,7 +19,6 @@ use Drush\Drush;
  */
 class OpenyTractionRecImportCommands extends DrushCommands {
 
-  use ProcessManagerAwareTrait;
   use SiteAliasManagerAwareTrait;
   use StringTranslationTrait;
 
