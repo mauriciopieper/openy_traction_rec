@@ -213,7 +213,7 @@ class TractionRec implements TractionRecInterface {
   /**
    * {@inheritdoc}
    */
-  public function loadMemberships(string $location = NULL): array {
+  public function loadMemberships(?string $location = NULL): array {
     try {
       $query = 'SELECT
         TREX1__Membership_Type__c.id,

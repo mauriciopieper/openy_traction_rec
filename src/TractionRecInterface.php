@@ -56,7 +56,7 @@ interface TractionRecInterface {
    * @return array
    *   The array of loaded membership types.
    */
-  public function loadMemberships(string $location = NULL): array;
+  public function loadMemberships(?string $location = NULL): array;
 
   /**
    * Loads the Total available for Course Options.
