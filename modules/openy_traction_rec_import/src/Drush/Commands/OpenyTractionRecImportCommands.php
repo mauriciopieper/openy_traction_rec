@@ -19,17 +19,24 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * OPENY Traction Rec import drush commands.
  */
-final class OpenyTractionRecImportCommands extends DrushCommands {
+final class OpenyTractionRecImportCommands extends DrushCommands implements SiteAliasManagerAwareInterface {
 
+  use AutowireTrait;
   use SiteAliasManagerAwareTrait;
   use StringTranslationTrait;
 
   public function __construct(
+    #[Autowire(service: 'openy_traction_rec_import.importer')]
     protected Importer $importer,
+    #[Autowire(service: 'openy_traction_rec_import.cleaner')]
     protected Cleaner $cleaner,
+    #[Autowire(service: 'file_system')]
     protected FileSystemInterface $fileSystem,
+    #[Autowire(service: 'entity_type.manager')]
     protected EntityTypeManagerInterface $entityTypeManager,
+    #[Autowire(service: 'openy_traction_rec_import.fetcher')]
     protected TractionRecFetcher $tractionRecFetcher,
+    #[Autowire(service: 'database')]
     protected Connection $database,
   ) {
     parent::__construct();
@@ -60,7 +67,7 @@ final class OpenyTractionRecImportCommands extends DrushCommands {
   #[CLI\Command(name: 'openy-tr:import', aliases: ['tr:import'])]
   #[CLI\Option(name: 'sync', description: 'Sync source and destination. Delete destination records that do not exist in the source.')]
   #[CLI\Option(name: 'update', description: 'In addition to processing unprocessed items from the source, update previously-imported items with the current data.')]
-  public function import(array $options): bool {
+  public function import(array $options = ['sync' => FALSE, 'update' => FALSE]): bool {
     if (!$this->importer->isEnabled()) {
       $this->logger()->notice($this->t(
         'The Traction Rec import is not enabled! Enable the
@@ -162,7 +169,7 @@ final class OpenyTractionRecImportCommands extends DrushCommands {
         'The Traction Rec fetcher is not enabled! Enable the fetcher at @settings',
         [
           '@settings' =>
-          Url::fromRoute(
+            Url::fromRoute(
               'openy_traction_rec_import.settings',
               [],
               ['absolute' => TRUE])->toString(),
@@ -174,7 +181,8 @@ final class OpenyTractionRecImportCommands extends DrushCommands {
     $fetch = $this->tractionRecFetcher->fetch();
 
     if (!is_dir($fetch)) {
-      $this->logger()->warning('Traction Rec data fetch failed. Check the logs for more info.');
+      $this->logger()
+        ->warning('Traction Rec data fetch failed. Check the logs for more info.');
     }
     else {
       $this->logger()->notice("Traction Rec data fetched to " . $fetch);
@@ -210,7 +218,8 @@ final class OpenyTractionRecImportCommands extends DrushCommands {
 
     foreach ($totalAvailableList as $sessionId => $totalAvailableItem) {
       if (!empty($migration_map[$sessionId])) {
-        $node = $this->entityTypeManager->getStorage('node')->load($migration_map[$sessionId]);
+        $node = $this->entityTypeManager->getStorage('node')
+          ->load($migration_map[$sessionId]);
         if ($node instanceof NodeInterface) {
           $totalCapacityAvailable = $totalAvailableItem['Unlimited_Capacity'] ? 100 : max((int) $totalAvailableItem['Total_Capacity_Available'], 0);
           $node->set('field_availability', $totalCapacityAvailable);
@@ -221,7 +230,8 @@ final class OpenyTractionRecImportCommands extends DrushCommands {
         }
       }
     }
-    $this->logger()->notice($this->t('Total available data were synced for @count sessions', ['@count' => $count]));
+    $this->logger()
+      ->notice($this->t('Total available data were synced for @count sessions', ['@count' => $count]));
   }
 
 }
