@@ -2,6 +2,7 @@
 
 namespace Drupal\openy_traction_rec_import\Drush\Commands;
 
+use Consolidation\SiteAlias\SiteAliasManagerAwareInterface;
 use Consolidation\SiteAlias\SiteAliasManagerAwareTrait;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -13,8 +14,9 @@ use Drupal\openy_traction_rec_import\Cleaner;
 use Drupal\openy_traction_rec_import\Importer;
 use Drupal\openy_traction_rec_import\TractionRecFetcher;
 use Drush\Attributes as CLI;
+use Drush\Commands\AutowireTrait;
 use Drush\Commands\DrushCommands;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * OPENY Traction Rec import drush commands.
@@ -40,17 +42,6 @@ final class OpenyTractionRecImportCommands extends DrushCommands implements Site
     protected Connection $database,
   ) {
     parent::__construct();
-  }
-
-  public static function create(ContainerInterface $container): static {
-    return new static(
-      $container->get('openy_traction_rec_import.importer'),
-      $container->get('openy_traction_rec_import.cleaner'),
-      $container->get('file_system'),
-      $container->get('entity_type.manager'),
-      $container->get('openy_traction_rec_import.fetcher'),
-      $container->get('database'),
-    );
   }
 
   /**
@@ -153,7 +144,7 @@ final class OpenyTractionRecImportCommands extends DrushCommands implements Site
    *   The array of command options.
    */
   #[CLI\Command(name: 'openy-tr:clean-up', aliases: ['tr:clean-up'])]
-  public function cleanUp(array $options) {
+  public function cleanUp(array $options = []) {
     $this->output()->writeln('Starting clean up...');
     $this->cleaner->cleanBackupFiles();
     $this->output()->writeln('Clean up finished!');
